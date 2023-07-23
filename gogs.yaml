@@ -30,6 +30,9 @@ spec:
                 resources:
                   requests:
                     storage: 1Gi
+            # emptyDir:
+            #   - name: data
+            #     mountPath: /data
         - type: "init-container"
           properties:
             name: gogs-init
