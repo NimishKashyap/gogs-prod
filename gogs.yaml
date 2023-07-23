@@ -1,0 +1,46 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application 
+metadata:
+  name: gogs-deployment
+spec:
+  components:
+    - name: gogs-webservice
+      type: webservice
+      properties:
+        image: gogs/gogs
+        cpu: "50m"
+        env: 
+          - name: SOCAT_LINK
+            value: "false"
+        memory: "512M"
+        ports:
+          - port: 3000
+            expose: true
+      traits:
+        - type: napptive-ingress
+          properties:
+            name: gogs-ingress
+            port: 3000
+            path: /
+        - type: storage
+          properties:
+            pvc:
+              - name: data
+                mountPath: /data/
+                resources:
+                  requests:
+                    storage: 1Gi
+        - type: "init-container"
+          properties:
+            name: gogs-init
+            image: busybox
+            cmd: ["/bin/sh"]
+            env: 
+              - name: GOGS_CUSTOM_CONF
+                value: "https://raw.githubusercontent.com/NimishKashyap/gogs-prod/main/conf/app.ini"
+            args: 
+              - "-c"
+              - "wget -O /workdir/app.ini $GOGS_CUSTOM_CONF"
+            mountName: data
+            appMountPath: "/data/gogs/conf"
+            initMountPath: "/workdir"
